@@ -46,17 +46,19 @@ function fallbackQueries(src, product) {
 async function collect(src, product, seen, step) {
   const primaryQs  = src === 'instagram' ? product.attrs.hashtags : product.attrs.queries;
   const fallbackQs = fallbackQueries(src, product);
+  let queriesTried = 0;
 
   let pool = [], d = { fresh: [], repeats: [] };
 
   // Pass 1 — primary queries: collect until we have a large-enough candidate pool.
   for (const q of primaryQs) {
+    queriesTried++;
     try { pool.push(...await retry(() => FETCH[src](q, product.title))); } catch (e) { step(`${src} "${q}" failed: ${e.message}`); continue; }
     d = dedupe(pool, seen); step(`${src}: ${d.fresh.length} fresh after "${q}"`);
-    if (d.fresh.length >= 55) break; // larger threshold → more to score
+    if (d.fresh.length >= 55) break;
   }
 
-  step(`Scoring ${src} (first pass)`);
+  step(`Scoring ${src} (first pass, ${d.fresh.length} candidates)`);
   let scored = await mapLimit(d.fresh.slice(0, 60), 2, async v => { const s = await score(product, v); return { ...v, ...s, low: s.score < THRESH }; });
   let good = scored.filter(v => !v.low).length;
 
@@ -65,9 +67,9 @@ async function collect(src, product, seen, step) {
     step(`${src}: only ${good}/${MIN} good — trying broader queries`);
     for (const q of fallbackQs) {
       if (good >= MIN) break;
+      queriesTried++;
       try { pool.push(...await retry(() => FETCH[src](q, product.title))); } catch (e) { step(`${src} fallback "${q}" failed: ${e.message}`); continue; }
       d = dedupe(pool, seen);
-      // Score only the newly added fresh items (beyond what we already scored).
       const newFresh = d.fresh.slice(scored.length);
       if (!newFresh.length) continue;
       const newScored = await mapLimit(newFresh.slice(0, 20), 2, async v => { const s = await score(product, v); return { ...v, ...s, low: s.score < THRESH }; });
@@ -77,11 +79,16 @@ async function collect(src, product, seen, step) {
     }
   }
 
-  return {
-    items: [...scored, ...d.repeats.map(v => ({ ...v, score: 0, reason: 'Seen in an earlier search', seenBefore: true }))],
-    good,
-    shortfall: good < MIN ? `Only ${good}/${MIN} matching videos found after ${pool.length} candidates — try a broader search term or add a product image` : null,
-  };
+  // Always surface the top MIN videos — items under threshold get "weak" label instead of hidden.
+  const allScored = [...scored].sort((a, b) => b.score - a.score);
+  allScored.slice(0, MIN).forEach(v => { if (v.low) { v.low = false; v.weak = true; } });
+  good = allScored.filter(v => !v.low).length; // recount after promotion
+
+  const items = [...allScored, ...d.repeats.map(v => ({ ...v, score: 0, reason: 'Seen in an earlier search', seenBefore: true }))];
+  const shortfall = good < MIN
+    ? `Only ${good}/${MIN} matching videos found — ${pool.length} candidates fetched across ${queriesTried} quer${queriesTried === 1 ? 'y' : 'ies'}. Add a product image URL for better matching.`
+    : null;
+  return { items, good, shortfall, _debug: { candidates: pool.length, queriesTried } };
 }
 
 export async function run(job, db, emit) {

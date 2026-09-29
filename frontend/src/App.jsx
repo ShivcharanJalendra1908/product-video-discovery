@@ -272,6 +272,15 @@ export default function App() {
           {res?.shortfall && (
             <div className="alert alert-warn" role="alert">
               ⚠️ {res.shortfall}
+              {res._debug && (
+                <p className="debug-line">
+                  Diagnostics: <strong>{res._debug.candidates}</strong> raw candidates fetched,{' '}
+                  <strong>{res._debug.queriesTried}</strong> quer{res._debug.queriesTried === 1 ? 'y' : 'ies'} tried.
+                  {res._debug.candidates === 0 && ' ← 0 candidates means the Apify actor returned no videos for this hashtag/query.'}
+                  {res._debug.candidates > 0 && res._debug.candidates < 10 && ' ← Very few candidates — hashtag may have low content volume.'}
+                  {res._debug.candidates >= 10 && ' ← Candidates fetched but scoring is strict — try providing a product image URL.'}
+                </p>
+              )}
               <p>Try a broader product name, or add a product image URL for better matching.</p>
             </div>
           )}
@@ -342,11 +351,16 @@ export default function App() {
                   <div className="card-body">
                     <div className="card-meta">
                       <span
-                        className={`score-badge ${v.low ? 'score-low' : 'score-high'}`}
+                        className={`score-badge ${v.weak ? 'score-weak' : v.low ? 'score-low' : 'score-high'}`}
                         title={`Match score: ${v.score}/100`}
                       >
                         {v.score}
                       </span>
+                      {v.weak && (
+                        <span className="weak-badge" title="Score below threshold but shown to fill the 20-video minimum">
+                          weak match
+                        </span>
+                      )}
                       <span className="platform-badge">
                         {v.platform === 'instagram' ? '📸' : '📘'} {v.platform}
                       </span>
