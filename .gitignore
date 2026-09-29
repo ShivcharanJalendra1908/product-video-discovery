@@ -4,3 +4,6 @@ backend/data
 backend/.cache
 dist
 *.log
+
+docs/docx_extracted
+docs/assignment.zip
