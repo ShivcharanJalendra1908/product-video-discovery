@@ -30,8 +30,8 @@ const apify = async (actor, input) => { const r = await fetch(`https://api.apify
 const rnd = () => Math.random().toString(36).slice(2);
 const mock = (src, q, title = q) => Array.from({ length: 25 }, (_, i) => ({ id: `${src}:${q}-${i}`, platform: src, url: 'https://example.com', thumbnail: `https://picsum.photos/seed/${src}${q}${i}/300/400`, caption: `${title} ${q} demo clip ${rnd()} ${rnd()}`, date: Date.now() - i * 864e5 }));
 const FETCH = {
-  instagram: async (q, t) => !E.APIFY_TOKEN ? mock('instagram', q, t) : (await apify(E.APIFY_IG_ACTOR || 'apify~instagram-hashtag-scraper', { hashtags: [q.replace(/\W/g, '')], resultsLimit: 60 }))
-    .filter(x => x.type === 'Video' || x.videoUrl).map(x => ({ id: 'instagram:' + (x.shortCode || x.id), platform: 'instagram', url: x.url, videoUrl: x.videoUrl || null, thumbnail: x.displayUrl, caption: x.caption, date: Date.parse(x.timestamp) })),
+  instagram: async (q, t) => !E.APIFY_TOKEN ? mock('instagram', q, t) : (await apify(E.APIFY_IG_ACTOR || 'khadinakbar~instagram-reels-search-scraper', { keywords: [q], maxResultsPerKeyword: 50 }))
+    .filter(x => x.reel_url).map(x => ({ id: 'instagram:' + (x.reel_url.match(/reel\/([^/?]+)/) || [])[1], platform: 'instagram', url: x.reel_url, videoUrl: x.video_url || null, thumbnail: x.thumbnail_url || x.display_url || x.thumbnail || x.cover_url, caption: x.caption, date: Date.parse(x.timestamp || x.taken_at || x.posted_at) || 0 })),
   meta: async (q, t) => !E.APIFY_TOKEN ? mock('meta', q, t) : (await apify(E.APIFY_META_ACTOR || 'curious_coder~facebook-ads-library-scraper', { urls: [{ url: `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=IN&media_type=video&q=${encodeURIComponent(q)}` }], count: 60 }))
     .filter(x => x.snapshot?.videos?.length).map(x => ({ id: 'meta:' + x.ad_archive_id, platform: 'meta', url: `https://www.facebook.com/ads/library/?id=${x.ad_archive_id}`, videoUrl: x.snapshot.videos[0].video_hd_url || x.snapshot.videos[0].video_sd_url || null, thumbnail: x.snapshot.videos[0].video_preview_image_url, caption: x.snapshot.body?.text || x.snapshot.title, date: Date.parse(x.start_date_string || x.start_date) || 0 })),
 };
@@ -44,7 +44,7 @@ function fallbackQueries(src, product) {
 }
 
 async function collect(src, product, seen, step) {
-  const primaryQs  = src === 'instagram' ? product.attrs.hashtags : product.attrs.queries;
+  const primaryQs = product.attrs.queries;
   const fallbackQs = fallbackQueries(src, product);
   let queriesTried = 0;
 
