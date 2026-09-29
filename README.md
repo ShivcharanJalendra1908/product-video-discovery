@@ -171,11 +171,11 @@ Run with real `APIFY_TOKEN` on 2026-09-29. Results below are from live Instagram
 
 | Product | Instagram good | Meta good | Best match reason |
 |---|---|---|---|
-| oversized graphic tee | **21/20** ✅ | **25/20** ✅ | 64: Similar look (CLIP text similarity 0.26); caption has 6/3 product words |
-| protein dark chocolate | 0/20 ⚠️ | 2/20 ⚠️ | 67: Similar look (CLIP text similarity 0.26); caption has 3/3 product words |
-| white running sneakers | **25/20** ✅ | **25/20** ✅ | 69: Similar look (CLIP text similarity 0.26); caption has 6/3 product words |
-| leather crossbody bag | 0/20 ⚠️ | 3/20 ⚠️ | 67: Similar look (CLIP text similarity 0.26); caption has 6/3 product words |
-| wireless earbuds | 3/20 ⚠️ | 6/20 ⚠️ | 69: Similar look (CLIP text similarity 0.26); caption has 4/2 product words |
+| oversized graphic tee | 0/20 ⚠️ | 0/20 ⚠️ | 51: Weak visual match (CLIP text similarity 0.27); caption has 6/3 product words |
+| protein dark chocolate | 0/20 ⚠️ | 6/20 ⚠️ | 69: Similar look (CLIP text similarity 0.29); caption has 6/3 product words |
+| white running sneakers | 0/20 ⚠️ | 1/20 ⚠️ | 74: Similar look (CLIP text similarity 0.30); caption has 3/3 product words |
+| leather crossbody bag | 0/20 ⚠️ | 9/20 ⚠️ | 93: Very close visual match (CLIP text similarity 0.31); caption has 5/3 product words |
+| wireless earbuds | 0/20 ⚠️ | 12/20 ⚠️ | 98: Very close visual match (CLIP text similarity 0.32); caption has 2/2 product words |
 
 ### Observations
 
