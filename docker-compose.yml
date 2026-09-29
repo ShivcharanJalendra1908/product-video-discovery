@@ -1,0 +1,20 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      - APIFY_TOKEN=${APIFY_TOKEN:-}
+      - APIFY_IG_ACTOR=${APIFY_IG_ACTOR:-apify~instagram-hashtag-scraper}
+      - APIFY_META_ACTOR=${APIFY_META_ACTOR:-curious_coder~facebook-ads-library-scraper}
+      - MATCH_THRESHOLD=${MATCH_THRESHOLD:-45}
+    volumes:
+      - pvd-data:/app/data     # search history + seen-video IDs
+      - pvd-models:/models     # CLIP model cache (downloaded once)
+    restart: unless-stopped
+  frontend:
+    build: ./frontend
+    ports: ["8080:80"]
+    depends_on: [backend]
+    restart: unless-stopped
+volumes:
+  pvd-data:
+  pvd-models:
