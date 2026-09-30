@@ -272,16 +272,15 @@ export default function App() {
           {res?.shortfall && (
             <div className="alert alert-warn" role="alert">
               ⚠️ {res.shortfall}
-              {res._debug && (
+              {res._debug && !res._debug.allSeenBefore && (
                 <p className="debug-line">
-                  Diagnostics: <strong>{res._debug.candidates}</strong> raw candidates fetched,{' '}
-                  <strong>{res._debug.queriesTried}</strong> quer{res._debug.queriesTried === 1 ? 'y' : 'ies'} tried.
-                  {res._debug.candidates === 0 && ' ← 0 candidates means the Apify actor returned no videos for this hashtag/query.'}
-                  {res._debug.candidates > 0 && res._debug.candidates < 10 && ' ← Very few candidates — hashtag may have low content volume.'}
-                  {res._debug.candidates >= 10 && ' ← Candidates fetched but scoring is strict — try providing a product image URL.'}
+                  Diagnostics: <strong>{res._debug.candidates}</strong> raw → <strong>{res._debug.unique}</strong> unique candidates, <strong>{res._debug.queriesTried}</strong> quer{res._debug.queriesTried === 1 ? 'y' : 'ies'} tried.
+                  {res._debug.candidates === 0 && ' ← Apify actor returned 0 videos for this query.'}
+                  {res._debug.candidates > 0 && res._debug.unique < 10 && ' ← Very few unique candidates — try a broader product name.'}
+                  {res._debug.unique >= 10 && ' ← Candidates fetched but scored below threshold — add a product image URL for better matching.'}
                 </p>
               )}
-              <p>Try a broader product name, or add a product image URL for better matching.</p>
+              {!res._debug?.allSeenBefore && <p>Try a broader product name, or add a product image URL for better matching.</p>}
             </div>
           )}
 
@@ -291,9 +290,11 @@ export default function App() {
               <div className="empty-icon">🔍</div>
               <h4>No videos to show for this tab</h4>
               <p>
-                {showLow
-                  ? 'No videos were found at all for this source.'
-                  : 'All videos scored below the match threshold. Tick "Show low matches" to see them, or try a different search.'}
+                {res?._debug?.allSeenBefore
+                  ? `All ${res._debug.candidates} videos were already shown in earlier searches. Tick "Previously seen" to view them.`
+                  : showLow
+                    ? 'No videos were found at all for this source.'
+                    : 'All videos scored below the match threshold. Tick "Show low matches" to see them, or try a different search.'}
               </p>
             </div>
           )}

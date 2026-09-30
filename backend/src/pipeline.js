@@ -1,7 +1,7 @@
 import dns from 'node:dns/promises';
 import { dedupe } from './dedup.js';
 import { analyze, score } from './brain.js';
-const E = process.env, THRESH = +(E.MATCH_THRESHOLD || 45), MIN = 20;
+const E = process.env, THRESH = +(E.MATCH_THRESHOLD || 45), THRESH_TEXT = +(E.MATCH_THRESHOLD_TEXT || 25), MIN = 20;
 const retry = async (fn, n = 3) => { for (let i = 0; ; i++) try { return await fn(); } catch (e) { if (i >= n - 1) throw e; await new Promise(r => setTimeout(r, 800 * 2 ** i)); } };
 async function mapLimit(a, n, fn) { const out = []; let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < a.length) { const k = i++; out[k] = await fn(a[k]); } })); return out; }
 
@@ -59,7 +59,7 @@ async function collect(src, product, seen, step) {
   }
 
   step(`Scoring ${src} (first pass, ${d.fresh.length} candidates)`);
-  let scored = await mapLimit(d.fresh.slice(0, 60), 2, async v => { const s = await score(product, v); return { ...v, ...s, low: s.score < THRESH }; });
+  let scored = await mapLimit(d.fresh.slice(0, 60), 2, async v => { const s = await score(product, v); const thr = s.mode === 'text' ? THRESH_TEXT : THRESH; return { ...v, ...s, low: s.score < thr }; });
   let good = scored.filter(v => !v.low).length;
 
   // Pass 2 — if still short, try fallback queries until we reach MIN or exhaust options.
@@ -72,7 +72,7 @@ async function collect(src, product, seen, step) {
       d = dedupe(pool, seen);
       const newFresh = d.fresh.slice(scored.length);
       if (!newFresh.length) continue;
-      const newScored = await mapLimit(newFresh.slice(0, 20), 2, async v => { const s = await score(product, v); return { ...v, ...s, low: s.score < THRESH }; });
+      const newScored = await mapLimit(newFresh.slice(0, 20), 2, async v => { const s = await score(product, v); const thr = s.mode === 'text' ? THRESH_TEXT : THRESH; return { ...v, ...s, low: s.score < thr }; });
       scored = [...scored, ...newScored];
       good = scored.filter(v => !v.low).length;
       step(`${src}: ${good}/${MIN} good after fallback "${q}"`);
@@ -84,10 +84,13 @@ async function collect(src, product, seen, step) {
   allScored.slice(0, MIN).forEach(v => { if (v.low) v.weak = true; });
 
   const items = [...allScored, ...d.repeats.map(v => ({ ...v, score: 0, reason: 'Seen in an earlier search', seenBefore: true }))];
+  const allSeenBefore = pool.length > 0 && d.fresh.length === 0;
   const shortfall = good < MIN
-    ? `Only ${good}/${MIN} matching videos found — ${pool.length} raw → ${d.fresh.length} unique candidates across ${queriesTried} quer${queriesTried === 1 ? 'y' : 'ies'}.`
+    ? allSeenBefore
+      ? `All ${pool.length} videos were already shown in earlier searches — tick "Previously seen" to view them.`
+      : `Only ${good}/${MIN} matching videos found — ${pool.length} raw → ${d.fresh.length} unique candidates across ${queriesTried} quer${queriesTried === 1 ? 'y' : 'ies'}.`
     : null;
-  return { items, good, shortfall, _debug: { candidates: pool.length, unique: d.fresh.length, queriesTried } };
+  return { items, good, shortfall, _debug: { candidates: pool.length, unique: d.fresh.length, queriesTried, allSeenBefore } };
 }
 
 export async function run(job, db, emit) {

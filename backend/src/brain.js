@@ -45,14 +45,13 @@ export async function analyze(p) {
   acache.set(key, a); return a;
 }
 
-// Pure function (unit-tested): CLIP cosine similarity + caption keywords -> 0..100 score with a reason.
 export function toScore(cos, hit, total, mode = 'image') {
   const text = total ? Math.min(1, hit / total) : 0;
-  if (cos == null) return { score: Math.min(40, Math.round(text * 100)), reason: `No image comparison possible; ${hit}/${total} product words in caption` };
-  const [lo, span] = mode === 'text' ? [0.24, 0.08] : [0.45, 0.35]; // text-image CLIP sims are lower (~0.2 unrelated, ~0.3 match)
-  const visual = Math.max(0, Math.min(1, (cos - lo) / span)); // CLIP image-image sims: ~0.55 unrelated, ~0.92 same item
+  if (cos == null) return { score: Math.min(40, Math.round(text * 100)), reason: `No image comparison possible; ${hit}/${total} product words in caption`, mode: 'none' };
+  const [lo, span] = mode === 'text' ? [0.24, 0.08] : [0.45, 0.35];
+  const visual = Math.max(0, Math.min(1, (cos - lo) / span));
   const label = visual > 0.75 ? 'Very close visual match' : visual > 0.5 ? 'Similar look' : 'Weak visual match';
-  return { score: Math.round(100 * (0.85 * visual + 0.15 * text)), reason: `${label} (CLIP ${mode} similarity ${cos.toFixed(2)}); caption has ${hit}/${total} product words` };
+  return { score: Math.round(100 * (0.85 * visual + 0.15 * text)), reason: `${label} (CLIP ${mode} similarity ${cos.toFixed(2)}); caption has ${hit}/${total} product words`, mode };
 }
 export async function score(product, v) {
   const pw = words(product.title), hit = words(v.caption).filter(w => pw.includes(w)).length;
