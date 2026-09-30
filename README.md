@@ -171,11 +171,10 @@ Run with real `APIFY_TOKEN` on 2026-09-29. Results below are from live Instagram
 
 | Product | Instagram good | Meta good | Best match reason |
 |---|---|---|---|
-| oversized graphic tee | 0/20 ⚠️ | 0/20 ⚠️ | 51: Weak visual match (CLIP text similarity 0.27); caption has 6/3 product words |
-| protein dark chocolate | 0/20 ⚠️ | 6/20 ⚠️ | 69: Similar look (CLIP text similarity 0.29); caption has 6/3 product words |
-| white running sneakers | 0/20 ⚠️ | 1/20 ⚠️ | 74: Similar look (CLIP text similarity 0.30); caption has 3/3 product words |
-| leather crossbody bag | 0/20 ⚠️ | 9/20 ⚠️ | 93: Very close visual match (CLIP text similarity 0.31); caption has 5/3 product words |
-| wireless earbuds | 0/20 ⚠️ | 12/20 ⚠️ | 98: Very close visual match (CLIP text similarity 0.32); caption has 2/2 product words |
+| https://us.princesspolly.com/products/the-ricky-oversized-tee-white | 0/20 ⚠️ | 20/20 | 27: Weak visual match (CLIP text similarity 0.26); caption has 2/3 product words |
+| https://rxbar.com/products/chocolate-sea-salt-protein-bar | 0/20 ⚠️ | 20/20 | 41: Weak visual match (CLIP text similarity 0.26); caption has 2/2 product words |
+| https://www.fossil.com/en-us/products/fiona-large-crossbody/ZB7271001.html | 0/20 ⚠️ | 20/20 | 100: No image comparison possible; 2/2 product words in caption |
+| https://www.bose.com/p/earbuds/bose-quietcomfort-ultra-earbuds/QCUE-HEADPHONEIN.html | 0/20 ⚠️ | 20/20 | 38: Weak visual match (CLIP image similarity 0.67); caption has 2/3 product words |
 
 ### Observations
 
