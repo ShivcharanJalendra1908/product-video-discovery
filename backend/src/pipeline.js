@@ -81,14 +81,13 @@ async function collect(src, product, seen, step) {
 
   // Always surface the top MIN videos — items under threshold get "weak" label instead of hidden.
   const allScored = [...scored].sort((a, b) => b.score - a.score);
-  allScored.slice(0, MIN).forEach(v => { if (v.low) { v.low = false; v.weak = true; } });
-  good = allScored.filter(v => !v.low).length; // recount after promotion
+  allScored.slice(0, MIN).forEach(v => { if (v.low) v.weak = true; });
 
   const items = [...allScored, ...d.repeats.map(v => ({ ...v, score: 0, reason: 'Seen in an earlier search', seenBefore: true }))];
   const shortfall = good < MIN
-    ? `Only ${good}/${MIN} matching videos found — ${pool.length} candidates fetched across ${queriesTried} quer${queriesTried === 1 ? 'y' : 'ies'}. Add a product image URL for better matching.`
+    ? `Only ${good}/${MIN} matching videos found — ${pool.length} raw → ${d.fresh.length} unique candidates across ${queriesTried} quer${queriesTried === 1 ? 'y' : 'ies'}.`
     : null;
-  return { items, good, shortfall, _debug: { candidates: pool.length, queriesTried } };
+  return { items, good, shortfall, _debug: { candidates: pool.length, unique: d.fresh.length, queriesTried } };
 }
 
 export async function run(job, db, emit) {

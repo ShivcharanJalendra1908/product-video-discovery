@@ -7,7 +7,7 @@ export function dedupe(items, seen = new Set(), thr = 0.85) {
     if (ids.has(v.id)) continue; ids.add(v.id);
     if (seen.has(v.id)) { repeats.push(v); continue; }
     const t = tokens(v.caption);
-    if (t.size >= 4 && sigs.some(s => jaccard(s, t) >= thr)) continue;
+    if (t.size >= 8 && sigs.some(s => jaccard(s, t) >= thr)) continue;
     sigs.push(t); fresh.push(v);
   }
   return { fresh, repeats };

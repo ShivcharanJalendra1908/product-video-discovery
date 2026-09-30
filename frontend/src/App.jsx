@@ -75,7 +75,7 @@ export default function App() {
   const starCount = Object.values(stars).filter(Boolean).length;
 
   const items = (res?.items || [])
-    .filter(v => (showLow || !v.low) && (showSeen || !v.seenBefore))
+    .filter(v => (showLow || !v.low || v.weak) && (showSeen || !v.seenBefore))
     .sort((a, b) => sort === 'score' ? b.score - a.score : (b.date || 0) - (a.date || 0));
 
   const isRunning = job && job.status !== 'done' && job.status !== 'error';
