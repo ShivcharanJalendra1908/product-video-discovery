@@ -68,7 +68,7 @@ async function collect(src, product, seen, step) {
   }
 
   step(`Scoring ${src} (first pass, ${d.fresh.length} candidates)`);
-  let scored = await mapLimit(d.fresh.slice(0, 15), 1, async v => { const s = await score(product, v); const thr = s.mode === 'text' ? THRESH_TEXT : THRESH; return { ...v, ...s, low: s.score < thr }; });
+  let scored = await mapLimit(d.fresh.slice(0, 60), 1, async v => { const s = await score(product, v); const thr = s.mode === 'text' ? THRESH_TEXT : THRESH; return { ...v, ...s, low: s.score < thr }; });
   let good = scored.filter(v => !v.low).length;
 
   // Pass 2 — if still short, try fallback queries until we reach MIN or exhaust options.
@@ -81,7 +81,7 @@ async function collect(src, product, seen, step) {
       d = dedupe(pool, seen);
       const newFresh = d.fresh.slice(scored.length);
       if (!newFresh.length) continue;
-      const newScored = await mapLimit(newFresh.slice(0, 10), 1, async v => { const s = await score(product, v); const thr = s.mode === 'text' ? THRESH_TEXT : THRESH; return { ...v, ...s, low: s.score < thr }; });
+      const newScored = await mapLimit(newFresh.slice(0, 20), 1, async v => { const s = await score(product, v); const thr = s.mode === 'text' ? THRESH_TEXT : THRESH; return { ...v, ...s, low: s.score < thr }; });
       scored = [...scored, ...newScored];
       good = scored.filter(v => !v.low).length;
       step(`${src}: ${good}/${MIN} good after fallback "${q}"`);
