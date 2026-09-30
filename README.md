@@ -209,6 +209,7 @@ Cost: ~$2.40 per 1,000 reels on Apify's free plan; searches stop early once 20 m
 - **Visual comparison is thumbnail-only**: We only compare the product image to the video's thumbnail via CLIP, not the actual video frames, which means misleading thumbnails can cause false positives.
 - **Text-only search accuracy is low**: Without a product image to compare against, relying solely on keyword matching in captions is highly inaccurate.
 - **Instagram algorithm dependence**: The quality of Instagram Reels output is entirely dependent on the specific Apify actor's logic and Instagram's organic search algorithm, which heavily favors viral clips over exact product keyword matches.
+- **Actor Deduplication on Instagram**: The chosen Instagram actor suppresses reels it has already delivered on repeat identical queries, so repeat searches may show fewer Instagram results.
 
 ---
 
