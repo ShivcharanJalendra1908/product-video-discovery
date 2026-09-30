@@ -191,6 +191,18 @@ Run with real `APIFY_TOKEN` on 2026-09-29. Results below are from live Instagram
 
 **CLIP scoring note:** Providing a product image URL works wonderfully and significantly increases the accuracy of the matching algorithm (as seen with Bose earbuds scoring 0.67 visual similarity against lifestyle ads).
 
+## Video Sources (Apify Actors Evaluated)
+
+To find product-matching videos, we tested 5 different Apify scrapers for Instagram. Finding reliable, product-specific Reels via keyword search is inherently difficult due to Instagram's algorithm prioritizing viral content over exact keyword matches. Here are the honest results:
+
+1. **`steadyfetch~instagram-keyword-reels-scraper` (Winner):** Returns exactly what it says—Reels. Properly populates `displayUrl` (thumbnail), `videoUrl`, `caption`, and shortcodes. Top results are highly relevant to the keyword (e.g., actually returns oversized graphic tees!).
+2. **`data-slayer~instagram-search-reels`:** Returns real reels and thumbnails, but heavily ignores the exact keyword and just returns unrelated trending/funny clips (e.g. "Me at 3am").
+3. **`khadinakbar~instagram-reels-search-scraper`:** Attempts to match the keyword with account names instead of content. Returns `null` for thumbnails, breaking the CLIP visual pipeline.
+4. **`apify~instagram-hashtag-scraper` (Posts):** Returns relevant content, but mostly static image posts rather than Reels, and lacks the required thumbnail fields.
+5. **`apify~instagram-hashtag-scraper` (Reels):** Only returned 1 reel, which was completely off-topic and just spamming the hashtag.
+
+**Honest Conclusion:** Instagram's search algorithm does not reliably return product-specific Reels for long-tail URLs/keywords. Therefore, an honest "0/20 strong" count on Instagram is expected for highly specific products, whereas Meta Ad Library reliably returns 20+ strong matches because ads are inherently product-driven.
+
 ---
 
 ## Contact
