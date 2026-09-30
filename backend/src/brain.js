@@ -3,6 +3,7 @@
 import { pipeline, env, AutoTokenizer, CLIPTextModelWithProjection } from '@xenova/transformers';
 env.cacheDir = process.env.MODEL_CACHE || './.cache'; // where the CLIP model is stored
 const MODEL = 'Xenova/clip-vit-base-patch32';
+const CLIP_DISABLED = process.env.CLIP_DISABLED === 'true';
 let embedder, classifier;
 const getEmbedder = async () => (embedder ||= await pipeline('image-feature-extraction', MODEL));
 const getClassifier = async () => (classifier ||= await pipeline('zero-shot-image-classification', MODEL));
@@ -33,7 +34,7 @@ const acache = new Map();
 export async function analyze(p) {
   const key = p.image || p.title; if (acache.has(key)) return acache.get(key);
   const a = { type: '', colors: [], graphics: '', material: '' };
-  if (p.image) try {
+  if (p.image && !CLIP_DISABLED) try {
     const clf = await getClassifier(), run = l => clf(p.image, l, { hypothesis_template: 'a photo of {}' });
     [a.type] = top(await run(LABELS.type)); a.colors = top(await run(LABELS.colors), 2);
     [a.graphics] = top(await run(LABELS.graphics)); [a.material] = top(await run(LABELS.material));
@@ -61,7 +62,7 @@ export function toScore(cos, hit, total, mode = 'image') {
 export async function score(product, v) {
   const pw = [...new Set(words(product.title))], hit = [...new Set(words(v.caption))].filter(w => pw.includes(w)).length;
   let cos = null, mode = 'image';
-  try {
+  if (!CLIP_DISABLED) try {
     if (v.thumbnail && product.image) cos = dot(await productEmb(product.image), await embed(v.thumbnail));
     else if (v.thumbnail && product.title) { mode = 'text'; cos = dot(await embedText(product.title), await embed(v.thumbnail)); }
   } catch { /* thumbnail unreachable or model unavailable: caption-only score */ }
