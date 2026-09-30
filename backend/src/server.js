@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import express from 'express'; import cors from 'cors';
 import fs from 'node:fs'; import crypto from 'node:crypto';
 import { run, safeUrl } from './pipeline.js';

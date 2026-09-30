@@ -193,15 +193,22 @@ Run with real `APIFY_TOKEN` on 2026-09-29. Results below are from live Instagram
 
 ## Video Sources (Apify Actors Evaluated)
 
-To find product-matching videos, we tested 5 different Apify scrapers for Instagram. Finding reliable, product-specific Reels via keyword search is inherently difficult due to Instagram's algorithm prioritizing viral content over exact keyword matches. Here are the honest results:
-
-1. **`steadyfetch~instagram-keyword-reels-scraper` (Winner):** Returns exactly what it says—Reels. Properly populates `displayUrl` (thumbnail), `videoUrl`, `caption`, and shortcodes. Top results are highly relevant to the keyword (e.g., actually returns oversized graphic tees!).
-2. **`data-slayer~instagram-search-reels`:** Returns real reels and thumbnails, but heavily ignores the exact keyword and just returns unrelated trending/funny clips (e.g. "Me at 3am").
-3. **`khadinakbar~instagram-reels-search-scraper`:** Attempts to match the keyword with account names instead of content. Returns `null` for thumbnails, breaking the CLIP visual pipeline.
-4. **`apify~instagram-hashtag-scraper` (Posts):** Returns relevant content, but mostly static image posts rather than Reels, and lacks the required thumbnail fields.
-5. **`apify~instagram-hashtag-scraper` (Reels):** Only returned 1 reel, which was completely off-topic and just spamming the hashtag.
+### Instagram source: actors tested
+| Actor | Result | Verdict |
+|---|---|---|
+| data-slayer/instagram-search-reels | Real reels with thumbnails, but returned generic trending clips regardless of keyword | Rejected |
+| khadinakbar/instagram-reels-search-scraper | Matched keyword against account names; thumbnail_url, video_url and caption were null | Rejected |
+| apify/instagram-hashtag-scraper (Posts) | Relevant posts, but image posts and no thumbnail field | Rejected |
+| apify/instagram-hashtag-scraper (Reels) | 1 reel, off-topic (hashtag spam) | Rejected |
+| steadyfetch/instagram-keyword-reels-scraper | Relevant reels with thumbnail, video URL, caption, date | **Chosen** |
+Cost: ~$2.40 per 1,000 reels on Apify's free plan; searches stop early once 20 matching reels are found.
 
 **Honest Conclusion:** Instagram's search algorithm does not reliably return product-specific Reels for long-tail URLs/keywords. Therefore, an honest "0/20 strong" count on Instagram is expected for highly specific products, whereas Meta Ad Library reliably returns 20+ strong matches because ads are inherently product-driven.
+
+## Limitations
+- **Visual comparison is thumbnail-only**: We only compare the product image to the video's thumbnail via CLIP, not the actual video frames, which means misleading thumbnails can cause false positives.
+- **Text-only search accuracy is low**: Without a product image to compare against, relying solely on keyword matching in captions is highly inaccurate.
+- **Instagram algorithm dependence**: The quality of Instagram Reels output is entirely dependent on the specific Apify actor's logic and Instagram's organic search algorithm, which heavily favors viral clips over exact product keyword matches.
 
 ---
 

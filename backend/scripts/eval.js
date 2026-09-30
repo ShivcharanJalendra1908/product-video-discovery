@@ -3,9 +3,6 @@
 const B = process.env.API || 'http://localhost:3001/api';
 const products = [
   'https://us.princesspolly.com/products/the-ricky-oversized-tee-white',
-  'https://rxbar.com/products/chocolate-sea-salt-protein-bar',
-  'https://www.hoka.com/en/us/mens-everyday-running-shoes/clifton-9/1127733.html',
-  'https://www.fossil.com/en-us/products/fiona-large-crossbody/ZB7271001.html',
   'https://www.bose.com/p/earbuds/bose-quietcomfort-ultra-earbuds/QCUE-HEADPHONEIN.html'
 ];
 console.log('| Product Link | Instagram good | Meta good | Best match reason |\n|---|---|---|---|');
