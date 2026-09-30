@@ -39,7 +39,7 @@ cd backend && npm run eval
 | Variable | Default | Description |
 |---|---|---|
 | `APIFY_TOKEN` | _(empty)_ | Apify API token — required for real Instagram / Meta data |
-| `APIFY_IG_ACTOR` | `data-slayer~instagram-search-reels` | Apify actor for Instagram Reels |
+| `APIFY_IG_ACTOR` | `steadyfetch~instagram-keyword-reels-scraper` | Apify actor for Instagram Reels |
 | `APIFY_META_ACTOR` | `curious_coder~facebook-ads-library-scraper` | Apify actor for Meta Ad Library |
 | `MATCH_THRESHOLD` | `45` | Minimum score (0–100) to show a video without the "low" flag |
 | `PORT` | `3001` | Backend HTTP port |
@@ -206,8 +206,9 @@ Cost: ~$2.40 per 1,000 reels on Apify's free plan; searches stop early once 20 m
 - **Text-only search accuracy is low**: Without a product image to compare against, relying solely on keyword matching in captions is highly inaccurate.
 - **Instagram algorithm dependence**: The quality of Instagram Reels output is entirely dependent on the specific Apify actor's logic and Instagram's organic search algorithm, which heavily favors viral clips over exact product keyword matches.
 - **Instagram source limits**: The chosen actor (`steadyfetch/instagram-keyword-reels-scraper`) has a "repeat memory" that skips reels it already delivered to the account, and Apify's free plan caps Instagram search at 60 pages per 24 hours (paid plans have no daily cap). When the cap is hit, the app explicitly reports "Apify free-plan daily limit reached" instead of showing an empty result.
+
 ---
 
 ## Contact
 
-Questions? **Ansh Chaudhary** — AI Automation & Developer — +91 7830147880
+Questions? **Shivcharan Jalendra** — AI Automation & Developer
