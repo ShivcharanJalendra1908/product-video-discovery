@@ -209,6 +209,3 @@ Cost: ~$2.40 per 1,000 reels on Apify's free plan; searches stop early once 20 m
 
 ---
 
-## Contact
-
-Questions? **Shivcharan Jalendra** — AI Automation & Developer
