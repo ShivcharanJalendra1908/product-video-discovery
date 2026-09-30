@@ -171,11 +171,11 @@ Run with real `APIFY_TOKEN` on 2026-09-29. Results below are from live Instagram
 
 | Product | Instagram good | Meta good | Best match reason |
 |---|---|---|---|
-| https://us.princesspolly.com/products/the-ricky-oversized-tee-white | 0/20 ⚠️ | 20/20 | 27: Weak visual match (CLIP text similarity 0.26); caption has 2/3 product words |
-| https://rxbar.com/products/chocolate-sea-salt-protein-bar | 0/20 ⚠️ | 20/20 | 41: Weak visual match (CLIP text similarity 0.26); caption has 2/2 product words |
+| https://us.princesspolly.com/products/the-ricky-oversized-tee-white | 0/20 ⚠️ | 0/20 ⚠️ | 10: Weak visual match (CLIP text similarity 0.19); caption has 2/3 product words |
+| https://rxbar.com/products/chocolate-sea-salt-protein-bar | 0/20 ⚠️ | 0/20 ⚠️ | 41: Weak visual match (CLIP text similarity 0.26); caption has 2/2 product words |
 | https://www.hoka.com/en/us/mens-everyday-running-shoes/clifton-9/1127733.html | blocked | blocked | site blocked product fetch request (bot protection) |
-| https://www.fossil.com/en-us/products/fiona-large-crossbody/ZB7271001.html | 0/20 ⚠️ | 20/20 | 100: No image comparison possible; 2/2 product words in caption |
-| https://www.bose.com/p/earbuds/bose-quietcomfort-ultra-earbuds/QCUE-HEADPHONEIN.html | 0/20 ⚠️ | 20/20 | 38: Weak visual match (CLIP image similarity 0.67); caption has 2/3 product words |
+| https://www.fossil.com/en-us/products/fiona-large-crossbody/ZB7271001.html | 0/20 ⚠️ | 0/20 ⚠️ | 40: No image comparison possible; 2/2 product words in caption |
+| https://www.bose.com/p/earbuds/bose-quietcomfort-ultra-earbuds/QCUE-HEADPHONEIN.html | 0/20 ⚠️ | 8/20 ⚠️ | 53: Similar look (CLIP image similarity 0.65); caption has 1/3 product words |
 
 ### Observations
 
