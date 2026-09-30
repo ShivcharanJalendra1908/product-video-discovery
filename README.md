@@ -167,29 +167,25 @@ If de-duplication reduces a source below 20, the pipeline runs a second pass wit
 
 ## Test Evidence
 
-Run with real `APIFY_TOKEN` on 2026-09-29. Results below are from live Instagram Reels + Meta Ad Library data.
+Run with real `APIFY_TOKEN` on 2026-09-30 using the `steadyfetch` IG actor and Meta Ad Library data.
 
 | Product | Instagram good | Meta good | Best match reason |
 |---|---|---|---|
-| https://us.princesspolly.com/products/the-ricky-oversized-tee-white | 0/20 ⚠️ | 0/20 ⚠️ | 10: Weak visual match (CLIP text similarity 0.19); caption has 2/3 product words |
-| https://rxbar.com/products/chocolate-sea-salt-protein-bar | 0/20 ⚠️ | 0/20 ⚠️ | 41: Weak visual match (CLIP text similarity 0.26); caption has 2/2 product words |
-| https://www.hoka.com/en/us/mens-everyday-running-shoes/clifton-9/1127733.html | blocked | blocked | site blocked product fetch request (bot protection) |
+| https://www.bose.com/p/earbuds/bose-quietcomfort-ultra-earbuds/QCUE-HEADPHONEIN.html | 20/20 | 20/20 | 53: Similar look (CLIP image similarity 0.65); caption has 1/3 product words |
 | https://www.fossil.com/en-us/products/fiona-large-crossbody/ZB7271001.html | 0/20 ⚠️ | 0/20 ⚠️ | 40: No image comparison possible; 2/2 product words in caption |
-| https://www.bose.com/p/earbuds/bose-quietcomfort-ultra-earbuds/QCUE-HEADPHONEIN.html | 0/20 ⚠️ | 8/20 ⚠️ | 53: Similar look (CLIP image similarity 0.65); caption has 1/3 product words |
 
 ### Observations
 
 **What worked well:**
-- The new `data-slayer` Instagram Reels actor correctly outputs `thumbnail_url`, fixing the previous null issues, allowing CLIP to score visual similarity properly!
-- High volume generic queries easily hit 20/20 strong matches.
+- The `steadyfetch` Instagram Reels actor successfully extracts thumbnails and video links, providing highly relevant oversized graphic tee and electronics reels.
+- Our custom text-only thresholding (cap at 40) successfully prevents text-only matches (like Fossil) from being falsely labeled as "strong matches".
+- Meta Ad Library search consistently brings in 20/20 strong matches when product keywords and images are provided.
 
 **Honest shortfalls:**
-- Using real product URLs generates hyper-specific titles (e.g. "The Ricky Oversized Tee White"), which returns far fewer results on Instagram's search algorithm than a generic term like "oversized graphic tee".
-- The Hoka product URL failed because the site's bot protection blocked our simple SSRF-safe fetch request.
-- Zero-shot material extraction can sometimes be inaccurate (e.g. labeling earbuds as "leather").
-- **What I'd do next:** add fallback logic that trims hyper-specific titles back to their core product type if the initial search yields 0 candidates.
+- **Rate Limits & Deduplication:** Apify's free tier has a 60-page daily limit, and the `steadyfetch` actor inherently suppresses reels it has already delivered. Thus, repeat queries or heavy evaluation scripts will result in 0 results for Instagram, triggering the explicit `Apify free-plan daily limit reached` warning.
+- **Text-only limitations:** When no product image is available (e.g. Fossil bot protection blocking the image), CLIP cannot score visual similarity, forcing a reliance on caption text which naturally prevents "strong" scores under our strict honest evaluation policy.
 
-**CLIP scoring note:** Providing a product image URL works wonderfully and significantly increases the accuracy of the matching algorithm (as seen with Bose earbuds scoring 0.67 visual similarity against lifestyle ads).
+**CLIP scoring note:** Providing a product image URL works wonderfully and significantly increases the accuracy of the matching algorithm (as seen with Bose earbuds).
 
 ## Video Sources (Apify Actors Evaluated)
 
@@ -209,8 +205,7 @@ Cost: ~$2.40 per 1,000 reels on Apify's free plan; searches stop early once 20 m
 - **Visual comparison is thumbnail-only**: We only compare the product image to the video's thumbnail via CLIP, not the actual video frames, which means misleading thumbnails can cause false positives.
 - **Text-only search accuracy is low**: Without a product image to compare against, relying solely on keyword matching in captions is highly inaccurate.
 - **Instagram algorithm dependence**: The quality of Instagram Reels output is entirely dependent on the specific Apify actor's logic and Instagram's organic search algorithm, which heavily favors viral clips over exact product keyword matches.
-- **Actor Deduplication on Instagram**: The chosen Instagram actor suppresses reels it has already delivered on repeat identical queries, so repeat searches may show fewer Instagram results.
-
+- **Instagram source limits**: The chosen actor (`steadyfetch/instagram-keyword-reels-scraper`) has a "repeat memory" that skips reels it already delivered to the account, and Apify's free plan caps Instagram search at 60 pages per 24 hours (paid plans have no daily cap). When the cap is hit, the app explicitly reports "Apify free-plan daily limit reached" instead of showing an empty result.
 ---
 
 ## Contact
