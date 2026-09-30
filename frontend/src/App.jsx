@@ -217,7 +217,7 @@ export default function App() {
                   >
                     {label}
                     <span className={`count-badge ${loading ? '' : good >= 20 ? 'good' : 'warn'}`}>
-                      {loading ? '…' : `${good}/20`}
+                      {loading ? '…' : `${good}/20 strong${srcRes?.items?.length > good ? ` (+${srcRes.items.length - good} weak)` : ''}`}
                     </span>
                   </button>
                 );

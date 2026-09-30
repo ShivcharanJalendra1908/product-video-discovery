@@ -39,7 +39,7 @@ cd backend && npm run eval
 | Variable | Default | Description |
 |---|---|---|
 | `APIFY_TOKEN` | _(empty)_ | Apify API token — required for real Instagram / Meta data |
-| `APIFY_IG_ACTOR` | `apify~instagram-hashtag-scraper` | Apify actor for Instagram Reels |
+| `APIFY_IG_ACTOR` | `data-slayer~instagram-search-reels` | Apify actor for Instagram Reels |
 | `APIFY_META_ACTOR` | `curious_coder~facebook-ads-library-scraper` | Apify actor for Meta Ad Library |
 | `MATCH_THRESHOLD` | `45` | Minimum score (0–100) to show a video without the "low" flag |
 | `PORT` | `3001` | Backend HTTP port |
@@ -95,7 +95,7 @@ React (Vite)
 
 | Source | Method | Why |
 |---|---|---|
-| **Instagram Reels** | Apify `instagram-hashtag-scraper` actor | No public search API; anonymous scraping is blocked — a provider handles logins and proxies |
+| **Instagram Reels** | Apify `instagram-search-reels` actor | No public search API; anonymous scraping is blocked — a provider handles logins and proxies |
 | **Meta Ad Library** | Apify `facebook-ads-library-scraper` actor (video ads only) | The official Meta API requires identity verification and focuses on political ads; the scraper covers all brand ads |
 
 ### Rate limits, blocks and missing data
