@@ -30,10 +30,13 @@ const apify = async (actor, input) => { const r = await fetch(`https://api.apify
 const rnd = () => Math.random().toString(36).slice(2);
 const mock = (src, q, title = q) => Array.from({ length: 25 }, (_, i) => ({ id: `${src}:${q}-${i}`, platform: src, url: 'https://example.com', thumbnail: `https://picsum.photos/seed/${src}${q}${i}/300/400`, caption: `${title} ${q} demo clip ${rnd()} ${rnd()}`, date: Date.now() - i * 864e5 }));
 const FETCH = {
-  instagram: async (q, t) => !E.APIFY_TOKEN ? mock('instagram', q, t)
-    : (await apify(E.APIFY_IG_ACTOR || 'steadyfetch~instagram-keyword-reels-scraper', { keyword: q, maxResults: 20 }))
-      .filter(x => x.status === 'delivered' && x.shortCode && x.displayUrl) // drops the run_summary row
-      .map(x => ({ id: 'instagram:' + x.shortCode, platform: 'instagram', url: x.url, thumbnail: x.displayUrl, caption: x.caption, date: Date.parse(x.takenAt) })),
+  instagram: async (q, t) => {
+    if (!E.APIFY_TOKEN) return mock('instagram', q, t);
+    const rows = await apify(E.APIFY_IG_ACTOR || 'steadyfetch~instagram-keyword-reels-scraper', { keywords: [q], maxResults: 20 });
+    const ok = rows.filter(x => x.status === 'delivered' && x.shortCode && x.displayUrl);
+    if (!ok.length && rows.some(x => x.status === 'stopped_at_limit')) throw new Error('Apify free-plan daily limit reached (resets 05:33 UTC)');
+    return ok.map(x => ({ id: 'instagram:' + x.shortCode, platform: 'instagram', url: x.url, thumbnail: x.displayUrl, caption: x.caption, date: Date.parse(x.takenAt) }));
+  },
   meta: async (q, t) => !E.APIFY_TOKEN ? mock('meta', q, t) : (await apify(E.APIFY_META_ACTOR || 'curious_coder~facebook-ads-library-scraper', { urls: [{ url: `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=IN&media_type=video&q=${encodeURIComponent(q)}` }], count: 60 }))
     .filter(x => x.snapshot?.videos?.length).map(x => ({ id: 'meta:' + x.ad_archive_id, platform: 'meta', url: `https://www.facebook.com/ads/library/?id=${x.ad_archive_id}`, videoUrl: x.snapshot.videos[0].video_hd_url || x.snapshot.videos[0].video_sd_url || null, thumbnail: x.snapshot.videos[0].video_preview_image_url, caption: x.snapshot.body?.text || x.snapshot.title, date: Date.parse(x.start_date_string || x.start_date) || 0 })),
 };
@@ -48,17 +51,18 @@ function fallbackQueries(src, product) {
 async function collect(src, product, seen, step) {
   // Instagram: short natural phrases only — no "buy"/"ad" suffixes that cause noise
   const w = words(product.title);
-  const igQueries = [...new Set([product.title, w.slice(-2).join(' '), w.slice(0, 2).join(' '), product.attrs.type, ...w])].filter(Boolean);
+  const igQueries = [...new Set([product.title, w.slice(-2).join(' '), w.slice(0, 2).join(' '), product.attrs.type, ...w])].filter(Boolean).slice(0, 3);
   const primaryQs = src === 'instagram' ? igQueries : product.attrs.queries;
   const fallbackQs = fallbackQueries(src, product);
   let queriesTried = 0;
+  let failed = 0, lastErr = '';
 
   let pool = [], d = { fresh: [], repeats: [] };
 
   // Pass 1 — primary queries: collect until we have a large-enough candidate pool.
   for (const q of primaryQs) {
     queriesTried++;
-    try { pool.push(...await retry(() => FETCH[src](q, product.title))); } catch (e) { step(`${src} "${q}" failed: ${e.message}`); continue; }
+    try { pool.push(...await retry(() => FETCH[src](q, product.title))); } catch (e) { failed++; lastErr = e.message; step(`${src} "${q}" failed: ${e.message}`); if (/daily limit/.test(e.message)) break; continue; }
     d = dedupe(pool, seen); step(`${src}: ${d.fresh.length} fresh after "${q}"`);
     if (d.fresh.length >= 55) break;
   }
@@ -73,7 +77,7 @@ async function collect(src, product, seen, step) {
     for (const q of fallbackQs) {
       if (good >= MIN) break;
       queriesTried++;
-      try { pool.push(...await retry(() => FETCH[src](q, product.title))); } catch (e) { step(`${src} fallback "${q}" failed: ${e.message}`); continue; }
+      try { pool.push(...await retry(() => FETCH[src](q, product.title))); } catch (e) { failed++; lastErr = e.message; step(`${src} fallback "${q}" failed: ${e.message}`); if (/daily limit/.test(e.message)) break; continue; }
       d = dedupe(pool, seen);
       const newFresh = d.fresh.slice(scored.length);
       if (!newFresh.length) continue;
@@ -93,7 +97,7 @@ async function collect(src, product, seen, step) {
   const shortfall = good < MIN
     ? allSeenBefore
       ? `All ${pool.length} videos were already shown in earlier searches — tick "Previously seen" to view them.`
-      : `Only ${good}/${MIN} matching videos found — ${pool.length} raw → ${d.fresh.length} unique candidates across ${queriesTried} quer${queriesTried === 1 ? 'y' : 'ies'}.`
+      : `Only ${good}/${MIN} matching videos found (${pool.length} raw, ${failed}/${queriesTried} queries failed${lastErr ? ': ' + lastErr : ''})`
     : null;
   return { items, good, shortfall, _debug: { candidates: pool.length, unique: d.fresh.length, queriesTried, allSeenBefore } };
 }
