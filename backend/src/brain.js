@@ -47,14 +47,19 @@ export async function analyze(p) {
 
 export function toScore(cos, hit, total, mode = 'image') {
   const text = total ? Math.min(1, hit / total) : 0;
-  if (cos == null) return { score: Math.min(40, Math.round(text * 100)), reason: `No image comparison possible; ${hit}/${total} product words in caption`, mode: 'none' };
+  if (cos == null) {
+    const score = Math.min(40, Math.round(text * 100));
+    const label = score >= 60 ? 'Strong match' : score >= 35 ? 'Similar look' : 'Weak match';
+    return { score, reason: `${label} (no image); ${hit}/${total} product words in caption`, mode: 'none' };
+  }
   const [lo, span] = mode === 'text' ? [0.24, 0.08] : [0.45, 0.35];
   const visual = Math.max(0, Math.min(1, (cos - lo) / span));
-  const label = visual > 0.75 ? 'Very close visual match' : visual > 0.5 ? 'Similar look' : 'Weak visual match';
-  return { score: Math.round(100 * (0.85 * visual + 0.15 * text)), reason: `${label} (CLIP ${mode} similarity ${cos.toFixed(2)}); caption has ${hit}/${total} product words`, mode };
+  const score = Math.round(100 * (0.85 * visual + 0.15 * text));
+  const label = score >= 60 ? 'Strong match' : score >= 35 ? 'Similar look' : 'Weak match';
+  return { score, reason: `${label} (CLIP ${mode} similarity ${cos.toFixed(2)}); caption has ${hit}/${total} product words`, mode };
 }
 export async function score(product, v) {
-  const pw = words(product.title), hit = words(v.caption).filter(w => pw.includes(w)).length;
+  const pw = [...new Set(words(product.title))], hit = [...new Set(words(v.caption))].filter(w => pw.includes(w)).length;
   let cos = null, mode = 'image';
   try {
     if (v.thumbnail && product.image) cos = dot(await productEmb(product.image), await embed(v.thumbnail));

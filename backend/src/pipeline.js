@@ -1,6 +1,6 @@
 import dns from 'node:dns/promises';
 import { dedupe } from './dedup.js';
-import { analyze, score } from './brain.js';
+import { analyze, score, words } from './brain.js';
 const E = process.env, THRESH = +(E.MATCH_THRESHOLD || 45), THRESH_TEXT = +(E.MATCH_THRESHOLD_TEXT || 25), MIN = 20;
 const retry = async (fn, n = 3) => { for (let i = 0; ; i++) try { return await fn(); } catch (e) { if (i >= n - 1) throw e; await new Promise(r => setTimeout(r, 800 * 2 ** i)); } };
 async function mapLimit(a, n, fn) { const out = []; let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < a.length) { const k = i++; out[k] = await fn(a[k]); } })); return out; }
@@ -44,7 +44,10 @@ function fallbackQueries(src, product) {
 }
 
 async function collect(src, product, seen, step) {
-  const primaryQs = product.attrs.queries;
+  // Instagram: short natural phrases only — no "buy"/"ad" suffixes that cause noise
+  const w = words(product.title);
+  const igQueries = [...new Set([product.title, w.slice(-2).join(' '), w.slice(0, 2).join(' '), product.attrs.type, ...w])].filter(Boolean);
+  const primaryQs = src === 'instagram' ? igQueries : product.attrs.queries;
   const fallbackQs = fallbackQueries(src, product);
   let queriesTried = 0;
 
